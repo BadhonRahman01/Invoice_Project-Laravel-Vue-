@@ -1,17 +1,34 @@
 <script setup>
     import axios from 'axios';
-import { onMounted, ref}    from 'vue';
+    import { onMounted, ref}    from 'vue';
+    import {useRouter} from 'vue-router';
 
+    const router = useRouter();
     let invoices = ref([]);
+    let searchInvoice = ref([]);
 
     onMounted(async ()=> {
         getInvoices();
     });
 
     const getInvoices = async () => {
-        let reponse = await axios.get('api/get_all_invoices');
+        let reponse = await axios.get('/api/get_all_invoices');
         // console.log(reponse.data);
         invoices.value = reponse.data.invoices;
+    }
+
+    const search = async () => {
+        let reponse = await axios.get('/api/search_invoice?s='+searchInvoice.value);
+         console.log(reponse.data.invoices);
+        invoices.value = reponse.data.invoices;
+        // searchInvoice.value = reponse.data.invoices;
+    }
+
+    const newInvoice = async () => {
+        let form = await axios.get('/api/create_invoice');
+        // console.log(reponse.data);
+        // invoices.value = reponse.data.invoices;
+        router.push('/invoice/new');
     }
 </script>
 
@@ -25,7 +42,7 @@ import { onMounted, ref}    from 'vue';
                 <h2 class="invoice__title">Invoices</h2>
             </div>
             <div>
-                <a class="btn btn-secondary">
+                <a class="btn btn-secondary" @click="newInvoice">
                     New Invoice
                 </a>
             </div>
@@ -60,7 +77,7 @@ import { onMounted, ref}    from 'vue';
                 </div>
                 <div class="relative">
                     <i class="table--search--input--icon fas fa-search "></i>
-                    <input class="table--search--input" type="text" placeholder="Search invoice">
+                    <input class="table--search--input" type="text" placeholder="Search invoice" v-model="searchInvoice" @keyup="search()">
                 </div>
             </div>
 
@@ -74,7 +91,7 @@ import { onMounted, ref}    from 'vue';
             </div>
 
             <!-- item 1 -->
-            <div class="table--items" v-for="invoice in invoices" :key="invoice.id" v-if="invoices.length > 0">
+            <div class="table--items" v-for="invoice in invoices" :key="invoice.id" >
                 <a href="#" class="table--items--transactionId">{{ invoice.id }}</a>
                 <p>{{ invoice.date }}</p>
                 <p>{{ invoice.number }}</p>
@@ -82,7 +99,7 @@ import { onMounted, ref}    from 'vue';
                 <p>{{ invoice.due_date }}</p>
                 <p>$ {{ invoice.total }}</p>
             </div>
-            <div class="table--items" v-else>
+            <div class="table--items" v-if="invoices.length == 0">
                 <p>Invoice not found</p>
             </div>
         </div>
